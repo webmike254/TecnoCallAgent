@@ -1,0 +1,68 @@
+name: Android build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-build.yml'
+      - 'integration/**'
+      - 'README.md'
+  schedule:
+    - cron: '23 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout TecnoCallAgent integration repository
+        uses: actions/checkout@v4
+        with:
+          path: TecnoCallAgent
+      - name: Checkout upstream Android gateway source
+        uses: actions/checkout@v4
+        with:
+          repository: sparkcyf/android-voice-sip-agent
+          ref: main
+          path: upstream
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swig build-essential pkg-config libssl-dev
+          sdkmanager "ndk;27.2.12479018"
+      - name: Run upstream JVM tests
+        working-directory: upstream
+        run: ./gradlew :sip:test :gateway:test
+      - name: Build PJSIP native libraries
+        working-directory: upstream
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_HOME }}
+          APP_PLATFORM: android-30
+          ABIS: arm64-v8a
+        run: sip-pjsua2/native/build-pjsua2.sh
+      - name: Assemble debug APK
+        working-directory: upstream
+        run: ./gradlew :app:assembleDebug
+      - name: Copy APK and source provenance
+        run: |
+          mkdir -p TecnoCallAgent/dist
+          cp upstream/app/build/outputs/apk/debug/*.apk TecnoCallAgent/dist/TecnoCallAgent-debug.apk
+          printf 'Upstream repository: https://github.com/sparkcyf/android-voice-sip-agent\nUpstream ref: %s\nBuilt from upstream source; not yet device-verified by this project.\n' "$(git -C upstream rev-parse HEAD)" > TecnoCallAgent/dist/BUILD-INFO.txt
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TecnoCallAgent-debug-apk
+          path: TecnoCallAgent/dist/
+          retention-days: 30
