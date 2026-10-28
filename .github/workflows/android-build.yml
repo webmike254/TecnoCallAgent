@@ -19,7 +19,7 @@ jobs:
         with:
           path: TecnoCallAgent
       - name: Checkout upstream Android gateway source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: sparkcyf/android-voice-sip-agent
           ref: main
