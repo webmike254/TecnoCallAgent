@@ -1,40 +1,52 @@
 # TecnoCallAgent
 
-Independent working fork of [Voice SIP Agent](https://github.com/sparkcyf/android-voice-sip-agent), intended to connect an Android SIM gateway to an AI voice agent and a Google Apps Script POS.
+**Latest version:** v1.0.0 (first versioned build in progress)  
+**Android support:** Android 11+ only in the current upstream baseline; ARM64 (`arm64-v8a`) only. Android 10 and all-device compatibility are not yet verified.
 
-## Project status
+## Install on Android
 
-- Upstream baseline: v0.3.5 (GPL-2.0-or-later with Apache-2.0 linking exception).
-- Upstream currently targets Android 11+ (API 30) and ARM64. Android 10 support is not yet implemented or verified.
-- Calls are routed through SIP/PBX; this Android app is not itself an AI model or a POS backend.
-- Device-specific call audio routing is experimental. Do not rely on it for emergency calls.
-- This repository must retain upstream license and third-party notices.
+**Direct APK link (available after the v1.0.0 release build succeeds):**  
+[Download TecnoCallAgent v1.0.0 APK](https://github.com/webmike254/TecnoCallAgent/releases/latest/download/TecnoCallAgent-v1.0.0.apk)
 
-## Planned integration architecture
+If the release download is not available yet, open [GitHub Actions builds](https://github.com/webmike254/TecnoCallAgent/actions), select the newest **Android APK** run, then scroll to the **Artifacts** section and download the APK artifact. Artifacts expire after 30 days; versioned Release APKs are the preferred install link.
 
-```text
-Android SIM gateway
-       | SIP / call audio
-       v
-Voice bridge / speech service
-       | speech-to-text -> AI provider -> text-to-speech
-       v
-POS adapter (server-side Apps Script endpoint)
-       | HTTPS + authentication + schema validation
-       v
-Google Apps Script POS
-```
+### Install steps
 
-Never put OpenRouter/AI provider keys, Apps Script admin secrets, or long-lived POS credentials in the Android APK. Keep secrets server-side, authenticate every request, validate phone numbers and order fields, and require confirmation before placing or changing orders. The AI must not be able to invoke arbitrary POS functions.
+1. Open the APK download link on your Android phone.
+2. If Android asks, allow your browser to install apps from that source.
+3. Open the downloaded APK and tap **Install**.
+4. Open TecnoCallAgent and follow its setup instructions. Shizuku and SIP/PBX configuration may be required.
+5. Test with a non-critical test call before relying on it.
 
-## Build
+Android may show a security warning because this is a debug APK, not a Play Store app. Install only if you understand and trust the source.
 
-The upstream project includes native PJSIP dependencies. Follow its `README.md`, `TECHNICAL.md`, and `sip-pjsua2/native/build-pjsua2.sh` instructions. GitHub Actions build artifacts will be published only after the build workflow succeeds. An artifact is not a verified working phone gateway until tested on a physical device.
+## What this app does
 
-## Device support
+TecnoCallAgent is being developed from [Voice SIP Agent by sparkcyf](https://github.com/sparkcyf/android-voice-sip-agent). The upstream Android gateway can bridge cellular SIM calls to SIP where the phone's Android version, chipset, firmware, permissions, and audio routing support it.
 
-The upstream baseline requires Android 11+ and arm64-v8a. Lowering `minSdk` alone cannot provide Android 10 support: Telecom roles, hidden APIs, Shizuku operations, and call-audio routing must be audited and guarded. Supported devices will be documented only after testing inbound calls, outbound calls, and two-way audio.
+This initial build pipeline builds the upstream gateway as a baseline. It does **not yet include a completed AI calling brain or a working Google Apps Script POS connector**. Those need to be implemented and tested before advertising the project as an AI receptionist.
 
-## Upstream attribution and license
+## AI and Google Apps Script POS
 
-Copyright notices from the upstream project and its dependencies must be preserved. This project is derived from Voice SIP Agent by sparkcyf. See `LICENSE` and `THIRD_PARTY_NOTICES.md` for the full license and notices.
+See [AI/POS integration plan](integration/AI_POS_INTEGRATION.md). The intended architecture uses a separate secured voice service for speech-to-text, an AI provider, text-to-speech, and a server-side adapter for allowlisted POS actions. Do not put API keys or POS secrets inside the APK or this public repository.
+
+## Current limitations
+
+- Upstream baseline minimum Android version: Android 11 (API 30).
+- CPU ABI: ARM64 (`arm64-v8a`) only.
+- Android 10 support is not enabled simply by lowering minSdk; compatibility work and device tests are needed.
+- Cellular audio routing varies by device and may not work on every Tecno model.
+- A successful build is not proof that inbound/outbound calls or two-way audio work on a specific phone.
+- Do not expose SIP ports publicly without strong authentication and appropriate firewall rules; prevent unauthorized outbound calls and toll fraud.
+- Do not use this experimental gateway for emergency calls.
+
+## Build status and version history
+
+- **v1.0.0:** initial versioned APK baseline; only publish/use the direct link once the release workflow succeeds.
+- Future releases use version tags such as `v1.0.1`, `v1.1.0`, and `v2.0.0`.
+
+[Open build history and downloadable artifacts](https://github.com/webmike254/TecnoCallAgent/actions) · [Releases](https://github.com/webmike254/TecnoCallAgent/releases)
+
+## License and attribution
+
+This is derived from Voice SIP Agent by sparkcyf. Preserve the upstream license, copyright notices, and third-party notices when copying or distributing its source. Review the upstream [repository](https://github.com/sparkcyf/android-voice-sip-agent) for the applicable license and notices.
