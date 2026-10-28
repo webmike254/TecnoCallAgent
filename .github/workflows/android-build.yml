@@ -40,15 +40,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y swig build-essential pkg-config libssl-dev
-          sdkmanager "ndk;27.2.12479018"
+          sdkmanager "ndk;28.2.13676358"
       - name: Run upstream JVM tests
         working-directory: upstream
         run: ./gradlew :sip:test :gateway:test
       - name: Build PJSIP native libraries
         working-directory: upstream
         env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
-          ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_HOME }}
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
           APP_PLATFORM: android-30
           ABIS: arm64-v8a
         run: sip-pjsua2/native/build-pjsua2.sh
